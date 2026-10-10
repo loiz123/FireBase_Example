@@ -18,7 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
   FirebaseFirestore db;
   Button btAdd, btShow;
-  EditText etName, etPhone;
+  EditText etId, etTitle, etContent, etImageUrl;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +35,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     db = FirebaseFirestore.getInstance();
     btAdd = findViewById(R.id.btAdd);
     btShow = findViewById(R.id.btShow);
-    etName = findViewById(R.id.etName);
-    etPhone = findViewById(R.id.etPhone);
+    etId = findViewById(R.id.etId);
+    etTitle = findViewById(R.id.etTitle);
+    etContent = findViewById(R.id.etContent);
+    etImageUrl = findViewById(R.id.etImageUrl);
+
     btAdd.setOnClickListener(this);
     btShow.setOnClickListener(this);
   }
@@ -44,9 +47,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   @Override
   public void onClick(View view) {
     if (view.getId() == R.id.btAdd) {
-      db.collection("users").add(new User(etName.getText().toString(), etPhone.getText().toString()));
-      etName.setText("");
-      etPhone.setText("");
+      String id = etId.getText().toString().trim();
+      String title = etTitle.getText().toString().trim();
+      String content = etContent.getText().toString().trim();
+      String imageUrl = etImageUrl.getText().toString().trim();
+
+      if (!id.isEmpty()) {
+        Article article = new Article(id, title, content, imageUrl);
+        db.collection("articles").document(id).set(article);
+      } else {
+        Article article = new Article(title, content, imageUrl);
+        db.collection("articles").add(article).addOnSuccessListener(documentReference -> {
+          documentReference.update("id", documentReference.getId());
+        });
+      }
+
+      etId.setText("");
+      etTitle.setText("");
+      etContent.setText("");
+      etImageUrl.setText("");
     } else if (view.getId() == R.id.btShow) {
       Intent intent = new Intent(getBaseContext(), ShowDataActivity.class);
       startActivity(intent);
